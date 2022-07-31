@@ -1,28 +1,70 @@
-<section class="text-gray-600 body-font relative">
-</section>
-<section class="text-gray-600 body-font relative">
-  <div class="absolute inset-0 bg-gray-300">
-    <iframe frameborder="0" width="100%" height="100%" marginheight="0" marginwidth="0" title="map" scrolling="no" src="https://maps.google.com/maps?width=100%25&height=600&hl=en&q=cyprus&ie=UTF8&t=&z=14&iwloc=B&output=embed" id="iyuq"></iframe>
-  </div>
-  <div class="container px-5 py-24 mx-auto flex">
-    <div class="lg:w-1/3 md:w-1/2 bg-white rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md">
-      <form method="get" id="ibee">
-        <h2 class="text-gray-900 text-lg mb-1 font-medium title-font">Feedback
-        </h2>
-        <p class="leading-relaxed mb-5 text-gray-600">Post-ironic portland shabby chic echo park, banjo fashion axe
-        </p>
-        <div class="relative mb-4">
-          <label for="email" class="leading-7 text-sm text-gray-600">Email</label>
-          <input type="email" id="email" name="email" required class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"/>
-        </div>
-        <div class="relative mb-4">
-          <label for="message" class="leading-7 text-sm text-gray-600">Message</label>
-          <textarea id="message" name="message" required class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"></textarea>
-        </div>
-        <button type="submit" class="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg">Button</button>
-        <p class="text-xs text-gray-500 mt-3">Chicharrones blog helvetica normcore iceland tousled brook viral artisan.
-        </p>
-      </form>
-    </div>
-  </div>
-</section>
+import emailjs from '@emailjs/browser'
+import ReCaptcha from "react-google-recaptcha";
+import {Formik} from 'formik'
+import {useRef, useState} from 'react'; 
+import Input from "./Input";
+import * as Yup from 'yup'
+export default function Contact() {
+
+	const validate = Yup.object({
+	name: Yup.string().required("Name is required"),
+	phone: Yup.number().required('Phone number is required'),
+	email: Yup.string()
+		.email("Invalid email address")
+		.required("Email is required"),
+	message: Yup.string().required("Message is required"),
+	});
+	
+	const formRef = useRef();
+	
+	const sendForm = (e) => {
+		e.preventDefault();
+		emailjs.sendForm(
+			process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+			process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+			formRef.current,
+			process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+		  );
+		  alert(
+			`Hi ${e.target.name.value}, thank you for contacting My Vision Initiative. We will be back in touch soon.`
+		  );
+		}
+
+  return (
+
+    <section className="text-gray-600 font-montserrat w-full px-10 md:px-0 md:w-3/5 mx-auto py-24">
+		<h2 className="text-rose-700 mb-1 font-bold text-2xl">Send us a message
+		</h2>
+		<p className="leading-relaxed mb-5 text-rose-600 pt-3 text-lg">Complete the form below to get in touch with My Vision Initiative.
+		</p>
+
+		<Formik 
+			initialValues={{
+				name:'', 
+				email:'',
+				message:'', 
+				phone:''
+			}}
+			validationSchema={validate}
+			onSubmit={sendForm}
+		>
+			{(formik) => (
+				<form ref={formRef}>
+					<Input label="Full name *" name='name' type='text' required/>
+					<Input label="Phone number * " name='phone' type='phone_number' required />
+					<Input label="Email address *" name='email' type='email' required />
+					<Input label="Message *" name='message' required placeholder='Hi MVI, ' /> 
+					<ReCaptcha sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY} />
+					<button 
+						type='submit' 
+						className='border-rose-700 border-2 px-5 py-3 text-rose-700 font-bold rounded-lg mt-5'
+						onClick={sendForm}
+					>
+						Send Message
+					</button>
+				</form>
+			)}				
+		</Formik>
+    </section> 
+    )
+ }
